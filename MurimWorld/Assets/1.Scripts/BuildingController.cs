@@ -53,7 +53,6 @@ public class BuildingController : MonoBehaviour
             return;
         }
         EventManager.OnBuildingClicked?.Invoke(myBuildingType);
-
-
+        meshRenderer.material.color = originColor;
     }
 }

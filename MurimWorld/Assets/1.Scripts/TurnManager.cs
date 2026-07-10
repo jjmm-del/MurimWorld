@@ -1,10 +1,8 @@
 using UnityEngine;
 using System;
 
-public class TurnManager : MonoBehaviour
+public class TurnManager : Singleton<TurnManager>
 {
-    public static TurnManager Instance {get ;private set;}
-    
     [Header("시간 설정(1턴 = 1개월")]
     [SerializeField] private int currentYear = 1;
     [SerializeField] private int currentMonth = 1;
@@ -23,18 +21,10 @@ public class TurnManager : MonoBehaviour
     public int MaxActionPoints => maxActionPoints;
     public int CurrentActionPoints => currentActionPoints;
 
-    private void Awake()
+    protected override void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            currentActionPoints = maxActionPoints;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        base.Awake();
+        currentActionPoints = maxActionPoints;
     }
 
     private void Start()

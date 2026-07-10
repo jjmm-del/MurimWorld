@@ -3,8 +3,8 @@ using UnityEngine;
 public class UIManger : MonoBehaviour
 {
     [Header("UI 패널 연결")]
-    [SerializeField]private GameObject mainCastlePanel;
-    [SerializeField] private GameObject forgePanel;
+    [SerializeField]private MainCastlePanelUI mainCastlePanel;
+    [SerializeField] private ForgePanelUI forgePanel;
     //필요한 패널 계속 추가
 
     void OnEnable()
@@ -29,13 +29,13 @@ public class UIManger : MonoBehaviour
             case BuildingType.MainCastle:
                 if (mainCastlePanel != null)
                 {
-                    mainCastlePanel.SetActive(true);
+                    mainCastlePanel.OpenPanel();
                 }
                 break;
             case BuildingType.Forge:
                 if (forgePanel != null)
                 {
-                    forgePanel.SetActive(true);
+                    forgePanel.OpenPanel();
                 }
                 break;
             default:
@@ -48,12 +48,12 @@ public class UIManger : MonoBehaviour
     {
         if (mainCastlePanel != null)
         {
-            mainCastlePanel.SetActive(false);
+            mainCastlePanel.ClosePanel();
         }
 
         if (forgePanel != null)
         {
-            forgePanel.SetActive(false);
+            forgePanel.ClosePanel();
         }
     }
 }
