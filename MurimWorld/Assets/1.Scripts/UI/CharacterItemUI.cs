@@ -16,6 +16,10 @@ public class CharacterItemUI : MonoBehaviour
 
     private Action<Character> _onClickedCallback;
 
+    private void Awake()
+    {
+        _roleText.text = "";
+    }
     private void OnEnable()
     {
         _selectButton.onClick.AddListener(OnItemClicked);
@@ -37,7 +41,7 @@ public class CharacterItemUI : MonoBehaviour
 
         if (character.CurrentRoleType != RoleType.None)
         {
-            _roleText.text = $"<color = yellow>[{GetRoleNameKorean(character.CurrentRoleType)}]</color>)";
+            _roleText.text = $"<color=yellow>[{GetRoleNameKorean(character.CurrentRoleType)}]</color>";
         }
 
         if (character.BaseData.Portrait != null && _portraitImage != null)

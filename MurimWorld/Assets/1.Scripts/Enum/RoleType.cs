@@ -7,5 +7,6 @@ public enum RoleType
     AllianceSubLeader, //무림부맹주
     Strategist, // 책사
     MedicineHead, // 약왕당주
+    WindSword,
     
 }

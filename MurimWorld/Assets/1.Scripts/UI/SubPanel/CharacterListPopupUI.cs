@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class AppointmentSubPanel : MonoBehaviour
+public class CharacterListPopupUI : MonoBehaviour
 {
     [Header("Scroll View Infrastructure")]
     [SerializeField] private Transform _contentContainer;
@@ -18,13 +19,11 @@ public class AppointmentSubPanel : MonoBehaviour
     private RoleType _currentSelectingRoleSlot = RoleType.None;
     private Character _pendingCharacter = null;
 
+    private Action _onAssignmentCompleteCallback;
     private void OnEnable()
     {
         _confirmButton.onClick.AddListener(OnConfirmAssignment);
         _cancelButton.onClick.AddListener(OnCancelAssignment);
-
-        //패널 켜질 때 명단을 새로고침
-        RefreshCharacterList();
     }
 
     private void OnDisable()
@@ -33,10 +32,14 @@ public class AppointmentSubPanel : MonoBehaviour
         _cancelButton.onClick.RemoveListener(OnCancelAssignment);
     }
 
-    public void OpenAppointmentList(RoleType targetRoleSlot)
+    public void OpenPopup(RoleType targetRoleSlot, Action onCompleteCallback)
     {
         _currentSelectingRoleSlot = targetRoleSlot;
+        _onAssignmentCompleteCallback = onCompleteCallback;
+        
         _confirmationPopup.SetActive(false);
+        _pendingCharacter = null;
+        
         gameObject.SetActive(true);
         RefreshCharacterList();
     }
@@ -81,6 +84,7 @@ public class AppointmentSubPanel : MonoBehaviour
 
             _popupMessageText.text =
                 $"<color=yellow>{selectedCharacter.BaseData.CharacterName}</color>님은 이미 다른 중책을 맡고 계십니다. \n직책을 변경하시겠습니까?";
+            _confirmationPopup.SetActive(true);
         }
         else
         {
@@ -111,8 +115,9 @@ public class AppointmentSubPanel : MonoBehaviour
         }
         _pendingCharacter = null;
         _confirmationPopup.SetActive(false);
-        
+        this.gameObject.SetActive(false);
         RefreshCharacterList();
+        _onAssignmentCompleteCallback?.Invoke();
     }
     
 }
