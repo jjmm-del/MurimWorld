@@ -15,3 +15,4 @@ public enum BuildingType
     Library,        //장경각
     
 }
+
