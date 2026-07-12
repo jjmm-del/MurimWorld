@@ -37,7 +37,7 @@ public class RoleSlotItemUI : MonoBehaviour
         }
         else
         {
-            _assignedNameText.text =$"<color=gray>공석</color>";
+            _assignedNameText.text =$"<color=#4c4c4c>공석</color>";
         }
     }
 
