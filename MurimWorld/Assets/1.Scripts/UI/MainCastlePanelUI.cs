@@ -5,31 +5,29 @@ using UnityEngine.UI;
 public class MainCastlePanelUI : BuildingPanelBase
 {
     [Header("버튼 컴포넌트 연결")]
-    [SerializeField] private Button appointmentTabButton; //인재 등록
-    [SerializeField] private Button councilTabButton; // 회의
-    [SerializeField] private Button diplomacyTabButton;   // 외교
+    [SerializeField] private Button _appointmentTabButton; //인재 등록
+    [SerializeField] private Button _councilTabButton; // 회의
+    [SerializeField] private Button _diplomacyTabButton;   // 외교
     
     private enum BuildingSubMenu{Appointment, Council, Diplomacy}
     
     protected override void Awake()
     {
         base.Awake();
-        
-        
     }
 
     private void Start()
     {
-        appointmentTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "인재 등록";
-        councilTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "회의";
-        diplomacyTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "외교";
+        _appointmentTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "인재 등록";
+        _councilTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "회의";
+        _diplomacyTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "외교";
     }
     protected override void OnEnable()
     {
         base.OnEnable();
-        appointmentTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Appointment));
-        councilTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Council));
-        diplomacyTabButton.onClick.AddListener((() => SwitchSubMenu(BuildingSubMenu.Diplomacy)));
+        _appointmentTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Appointment));
+        _councilTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Council));
+        _diplomacyTabButton.onClick.AddListener((() => SwitchSubMenu(BuildingSubMenu.Diplomacy)));
         
         
     }
@@ -37,9 +35,9 @@ public class MainCastlePanelUI : BuildingPanelBase
     protected override void OnDisable()
     {
         base.OnDisable();
-        appointmentTabButton.onClick.RemoveAllListeners();
-        councilTabButton.onClick.RemoveAllListeners();
-        diplomacyTabButton.onClick.RemoveAllListeners();
+        _appointmentTabButton.onClick.RemoveAllListeners();
+        _councilTabButton.onClick.RemoveAllListeners();
+        _diplomacyTabButton.onClick.RemoveAllListeners();
     }
     
     

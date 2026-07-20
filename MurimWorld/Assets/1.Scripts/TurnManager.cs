@@ -1,73 +1,129 @@
-using UnityEngine;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class TurnManager : Singleton<TurnManager>
 {
     [Header("시간 설정(1턴 = 1개월")]
-    [SerializeField] private int currentYear = 1;
-    [SerializeField] private int currentMonth = 1;
+    [SerializeField] private int _currentYear = 1;
+    [SerializeField] private int _currentMonth = 1;
     
-    [Header("행동력(명령서) 설정")]
-    [SerializeField] private int maxActionPoints = 3;
-    [SerializeField] private int currentActionPoints = 0;
-
-    [Header("현재 상태")]
-    [SerializeField] private GamePhase currentPhase = GamePhase.Domestic;
+    [Header("행동력(ActionPoint")]
+    [SerializeField] private int _maxAP = 3;
+    [SerializeField] private int _currentAP = 3;
     
-    public static event Action OnTurnStateChanged;
+    
+    [SerializeField]private List<ICommand> _pendingCommands = new List<ICommand>();
+    public int CurrentYear => _currentYear;
+    public int CurrentMonth => _currentMonth;
+    public int MaxAP => _maxAP;
+    public int CurrentAP => _currentAP;
+    public IReadOnlyList<ICommand> PendingCommands => _pendingCommands;
 
-    public int CurrentYear => currentYear;
-    public int CurrentMonth => currentMonth;
-    public int MaxActionPoints => maxActionPoints;
-    public int CurrentActionPoints => currentActionPoints;
+    public Action OnQueueChanged;
+    public Action OnActionPointChanged;
+    public Action<string> OnCommandExecuted; //명령 하나가 끝날 때 발생
+    public Action<int, int> OnMonthEnded; //모든 명령이 끝나고 달이 넘어갈 때 발생
 
     protected override void Awake()
     {
         base.Awake();
-        currentActionPoints = maxActionPoints;
+        RefreshMaxActionPoint();
     }
 
-    private void Start()
+    public void RefreshMaxActionPoint()
     {
-        
-        OnTurnStateChanged?.Invoke();
-    }
-
-    public bool UseActionPoint(int cost = 1)
-    {
-        if (currentActionPoints >= cost)
+        int baseAp = 3;
+        if (RosterManager.Instance != null)
         {
-            currentActionPoints -= cost;
-            Debug.Log($"명령을 하달했습니다. 남은 행동력: {currentActionPoints}");
+            int totalMembers = RosterManager.Instance.AllCharacters.Count;
 
-            OnTurnStateChanged?.Invoke();
+            int memeberBonus = totalMembers / 3; 
+            
+            //추가 로직
+            _maxAP = baseAp + memeberBonus;
+        }
+        _currentAP = _maxAP;
+        OnActionPointChanged?.Invoke();
+    }
+
+    public bool TryEnQueueCommand(ICommand command, int apCost)
+    {
+        if (_currentAP >= apCost)
+        {
+            _currentAP -= apCost;
+            _pendingCommands.Add(command);
+
+            OnActionPointChanged?.Invoke();
+            OnQueueChanged?.Invoke();
+            Debug.Log($"[명령하달]{command.CommandName} 예약 완료");
             return true;
         }
-        else
-        {
-            Debug.LogWarning($"행동력(명령서)이 부족하여 명령을 내릴 수 없습니다.");
-            return false;
-        }
+
+        return false;
     }
 
-    //턴 종료 버튼을 눌렀을 때 실행 될 함수
-    public void EndTurn()
+    public void CancelCommand(ICommand commandToCancel, int refundAP)
     {
-        currentMonth++;
-        if (currentMonth > 12)
+        if (_pendingCommands.Contains(commandToCancel))
         {
-            currentMonth = 1;
-            currentYear++;
-        }
+            _pendingCommands.Remove(commandToCancel);
+            _currentAP += refundAP; //ap환불
+            OnActionPointChanged?.Invoke();
+            OnQueueChanged?.Invoke();
+            Debug.Log($"[명령 취소]{commandToCancel.CommandName}취소 완료. {refundAP}AP가 환불");
 
-        currentActionPoints = maxActionPoints;
-        currentPhase = GamePhase.Domestic; //다음 달은 다시 내정부터 시작
-        
-        Debug.Log($"---{currentYear}년 {currentMonth}월이 밝았습니다 ---");
-        
-        //추후 다른 로직 추가
-        
-        //턴이 넘어갔으니 UI에게 시간과 행동력 업데이트 하라고 방송
-        OnTurnStateChanged?.Invoke();
+        }
     }
+    
+    //턴 종료 시 실행 될 함수
+    public void ExecuteTurn()
+    {
+        //코루틴을 돌려 순차적을 실행(시각적 피드백)
+        StartCoroutine(ExecuteTurnCoroutine());
+    }
+
+    public IEnumerator ExecuteTurnCoroutine()
+    {
+        int executedYear = _currentYear;
+        int executedMonth = _currentMonth;
+        
+        //명령들 실행
+        OnCommandExecuted?.Invoke($"\n==={executedYear}년 {executedMonth}월 실행 보고===");
+        
+        List<ICommand> commandToExecute = new List<ICommand>(_pendingCommands);
+        
+        _pendingCommands.Clear();
+        
+        foreach (ICommand cmd in commandToExecute)
+        {
+            string resultLog = cmd.Execute();
+            OnCommandExecuted?.Invoke($"--{resultLog}");
+
+            if (cmd is CraftWeaponCommand craftCmd)
+            {
+                if (!craftCmd.IsCompleted)
+                {
+                    _pendingCommands.Add(craftCmd);
+                }
+            }
+            
+            yield return new WaitForSeconds(0.7f); //
+        }
+        
+        
+        //시간변경 로직
+        _currentMonth++;
+        if (_currentMonth > 12)
+        {
+            _currentMonth = 1;
+            _currentYear++;
+        }
+        
+        OnQueueChanged?.Invoke();
+        RefreshMaxActionPoint();
+        OnMonthEnded?.Invoke(executedYear, executedMonth);
+    }
+    
 }

@@ -5,32 +5,26 @@ using UnityEngine.UI;
 public class ForgePanelUI : BuildingPanelBase
 {
     [Header("버튼 컴포넌트 연결")]
-    [SerializeField] private Button craftTabButton; // 제작
-    [SerializeField] private Button repairTabButton; // 수리 등 나중에 추가
+    [SerializeField] private Button _craftTabButton; // 제작
+    [SerializeField] private Button _repairTabButton; // 수리 등 나중에 추가
     
     private enum ForgeSubMenu{Craft=0, Repair=1}
-
-    protected override void Awake()
-    {
-        base.Awake();
-    }
-
+    
     protected override void OnEnable()
     {
         base.OnEnable();
-        craftTabButton.onClick.AddListener(()=>SwitchSubMenu(ForgeSubMenu.Craft));
-        repairTabButton.onClick.AddListener(()=> SwitchSubMenu(ForgeSubMenu.Repair));
+        _craftTabButton.onClick.AddListener(()=>SwitchSubMenu((int)ForgeSubMenu.Craft));
+        _repairTabButton.onClick.AddListener(()=> SwitchSubMenu((int)ForgeSubMenu.Repair));
         
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
-        craftTabButton.onClick.RemoveAllListeners();
-        repairTabButton.onClick.RemoveAllListeners();
+        _craftTabButton.onClick.RemoveAllListeners();
+        _repairTabButton.onClick.RemoveAllListeners();
     }
-
-
+    
     private void SwitchSubMenu(ForgeSubMenu targetMenu)
     {
         base.SwitchSubMenu((int)targetMenu);
