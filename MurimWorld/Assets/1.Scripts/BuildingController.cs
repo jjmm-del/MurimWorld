@@ -68,7 +68,7 @@ public class BuildingController : MonoBehaviour
         {
             TooltipManager.Instance.HideTooltip();
         }
-        EventManager.OnBuildingClicked?.Invoke(_myBuildingType);
+        EventManager.TriggerBuildingClicked(buildingType: _myBuildingType);
         meshRenderer.material.color = originColor;
     }
 }

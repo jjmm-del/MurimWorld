@@ -2,64 +2,47 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainCastlePanelUI : BuildingPanelBase
+public class MainCastlePanelUI : UIPopup
 {
-    [Header("버튼 컴포넌트 연결")]
-    [SerializeField] private Button _appointmentTabButton; //인재 등록
-    [SerializeField] private Button _councilTabButton; // 회의
-    [SerializeField] private Button _diplomacyTabButton;   // 외교
-    
-    private enum BuildingSubMenu{Appointment, Council, Diplomacy}
-    
-    protected override void Awake()
-    {
-        base.Awake();
-    }
+    enum Buttons {CloseButton, AppointmentTabButton, CouncilTabButton, DiplomacyTabButton}
+    enum GameObjects { AppointmentSubPanel,CouncilSubPanel, DiplomacySubPanel }
 
-    private void Start()
+    private AppointmentSubPanelUI _appointSubPanel;
+    //private CouncilSubPanelUI _councilSubPanel;
+    //private DiplomacyPanelUI _diplomacyPanel;
+    
+    public override void Init()
     {
-        _appointmentTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "인재 등록";
-        _councilTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "회의";
-        _diplomacyTabButton.GetComponentInChildren<TextMeshProUGUI>().text = "외교";
-    }
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-        _appointmentTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Appointment));
-        _councilTabButton.onClick.AddListener(()=>SwitchSubMenu(BuildingSubMenu.Council));
-        _diplomacyTabButton.onClick.AddListener((() => SwitchSubMenu(BuildingSubMenu.Diplomacy)));
+        base.Init();
+        Bind<Button>(typeof(Buttons));
+        Bind<GameObject>(typeof(GameObjects));
+
+        Get<Button>((int)Buttons.CloseButton).onClick.AddListener(ClosePopupUI);
+        Get<Button>((int)Buttons.AppointmentTabButton).onClick.AddListener(() => SwitchTab(0));
+        Get<Button>((int)Buttons.CouncilTabButton).onClick.AddListener(() => SwitchTab(1));
+        Get<Button>((int)Buttons.DiplomacyTabButton).onClick.AddListener(() => SwitchTab(2));
         
-        
+        _appointSubPanel = Get<GameObject>((int)GameObjects.AppointmentSubPanel).GetComponent<AppointmentSubPanelUI>();
+        //_councilSubPanel - Get<GameObject>((int)GameObjects.CouncilPanel).GetComponent<CouncilSubPanelUI>();
+        //_diplomacyPanel - Get<GameObject>((int)GameObjects.DiplomacyPanel).GetComponent<DiplomacySubPanelUI>();
+
+        _appointSubPanel.Init();
+
+        SwitchTab(0);
     }
 
-    protected override void OnDisable()
+    private void SwitchTab(int index)
     {
-        base.OnDisable();
-        _appointmentTabButton.onClick.RemoveAllListeners();
-        _councilTabButton.onClick.RemoveAllListeners();
-        _diplomacyTabButton.onClick.RemoveAllListeners();
-    }
-    
-    
+        Get<GameObject>((int)GameObjects.AppointmentSubPanel).SetActive(index ==0);
+        Get<GameObject>((int)GameObjects.CouncilSubPanel).SetActive(index ==1);
+        Get<GameObject>((int)GameObjects.DiplomacySubPanel).SetActive(index ==2);
 
-    private void SwitchSubMenu(BuildingSubMenu targetMenu)
-    {
-        base.SwitchSubMenu((int)targetMenu);
-
-        switch (targetMenu)
+        switch (index)
         {
-            case BuildingSubMenu.Appointment:
-                Debug.Log("인재 관리");
+            case 0: _appointSubPanel.RefreshRoleSlots();
                 break;
-            case BuildingSubMenu.Council:
-                Debug.Log("지도를 보며 정세 파악");
-                break;
-            case BuildingSubMenu.Diplomacy:
-                Debug.Log("외교");
-                break;
+                //case 1: _councilSubPanel
+                //case 2: __diplomacySubPanel
         }
     }
-    
-    
-    
 }

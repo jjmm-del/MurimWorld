@@ -2,19 +2,24 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CommandItemUI : MonoBehaviour
+public class CommandItemUI : UI_SubItem
 {
-    [SerializeField] private TextMeshProUGUI _nameText;
-    [SerializeField] private Button _cancelButton;
+    enum Texts {NameText};
+    enum Buttons {CancelButton}
     private ICommand _myCommand;
 
-    public void Initialize(ICommand cmd)
+    public override void Init()
+    {
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        Bind<Button>(typeof(Buttons));
+        
+        Get<Button>((int)Buttons.CancelButton).onClick.AddListener(OnCancelClicked);
+    }
+
+    public void SetInfo(ICommand cmd)
     {
         _myCommand = cmd;
-        _nameText.text = cmd.CommandName;
-        
-        _cancelButton.onClick.RemoveAllListeners();
-        _cancelButton.onClick.AddListener(OnCancelClicked);
+        Get<TextMeshProUGUI>((int)Texts.NameText).text = cmd.CommandName;
     }
 
     private void OnCancelClicked()

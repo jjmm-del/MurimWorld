@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterListPopupUI : MonoBehaviour
+public class CharacterListPopupUI : UIPopup
 {
     [Header("Scroll View Infrastructure")]
     [SerializeField] private Transform _contentContainer;

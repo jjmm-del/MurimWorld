@@ -1,69 +1,63 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-public class TopUI : MonoBehaviour
+public class TopUI : UIScene
 {
-    [Header("UI컴포넌트 연결")]
-    [SerializeField] private TextMeshProUGUI _dateText;
-    [SerializeField] private TextMeshProUGUI _actionPointText;
-    [SerializeField] private Button _endTurnButton;
+    //Hierarchy 창에 있는 오브젝트 이름과 스펠링이 같아야함
+    enum Texts {DateText, ActionPointText}
+    enum Buttons {EndTurnButton}
 
-    private void OnEnable()
+    public override void Init()
     {
-        _endTurnButton.onClick.AddListener(OnEndTurnButtonClicked);
+        base.Init();
+
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        Bind<Button>(typeof(Buttons));
+        
+        Get<Button>((int)Buttons.EndTurnButton).onClick.AddListener(OnEndTurnButtonClicked);
+
         if (TurnManager.Instance != null)
         {
-            TurnManager.Instance.OnActionPointChanged += UpdateTopUI; ;
+            TurnManager.Instance.OnActionPointChanged += UpdateTopUI;
             TurnManager.Instance.OnMonthEnded += HandleMonthEnded;
+            
         }
+
+        UpdateTopUI();
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        _endTurnButton.onClick.RemoveListener(OnEndTurnButtonClicked);
         if (TurnManager.Instance != null)
         {
             TurnManager.Instance.OnActionPointChanged -= UpdateTopUI;
             TurnManager.Instance.OnMonthEnded -= HandleMonthEnded;
         }
     }
-
-    private void Start()
-    {
-        UpdateTopUI();
-    }
-
+    
     private void UpdateTopUI()
     {
         if (TurnManager.Instance == null) return;
-        _dateText.text = $"{TurnManager.Instance.CurrentYear}년 {TurnManager.Instance.CurrentMonth}월";
-        if (_actionPointText != null)
-        { 
-            _actionPointText.text = $"남은 행동력: {TurnManager.Instance.CurrentAP}/{TurnManager.Instance.MaxAP}"; 
-        }
-            
+
+        Get<TextMeshProUGUI>((int)Texts.DateText).text = $"{TurnManager.Instance.CurrentYear}년 {TurnManager.Instance.CurrentMonth}월";
+        Get<TextMeshProUGUI>((int)Texts.ActionPointText).text = $"남은 행동력 : {TurnManager.Instance.CurrentAP}/{TurnManager.Instance.MaxAP}";
     }
 
     private void OnEndTurnButtonClicked()
     {
         if (TurnManager.Instance == null) return;
-        
-        _endTurnButton.interactable = false;
+
+        Get<Button>((int)Buttons.EndTurnButton).interactable = false;
         TurnManager.Instance.ExecuteTurn();
-        
+
     }
 
     private void HandleMonthEnded(int year, int month)
     {
         UpdateTopUI();
-        EnableEndTurnButton();
+        Get<Button>((int)Buttons.EndTurnButton).interactable = true;
+        
+        //[핵심] 여기서 UIManager를 통해 '월말 결산 팝업'을 띄우기
+        //UIManager.Instance.ShowPopupUI<MonthlyReportPopupUI>();
     }
-    private void EnableEndTurnButton()
-    {
-        if (_endTurnButton != null)
-        {
-            _endTurnButton.interactable = true;
-        }
-    }
-
 }

@@ -1,44 +1,38 @@
 using UnityEngine;
-using System;
-using System.Linq.Expressions;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
-public class RoleSlotItemUI : MonoBehaviour
+public class RoleSlotItemUI : UI_SubItem
 {
-    [Header("UI Components")]
-    [SerializeField] private TextMeshProUGUI _roleNameText;
-    [SerializeField] private TextMeshProUGUI _assignedNameText;
-    [SerializeField] private Button _slotButton;
-
+    enum Texts {RoleNameText, AssignedCharacterNameText}
+    enum Buttons{AppointmentButton};
+    
     private RoleType _myRole;
-    private Action<RoleType> _onSlotClickedCallback;
 
-    public void Initialize(RoleType role, Action<RoleType> onClickCallback)
+    public override void Init()
+    {
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        Bind<Button>(typeof(Buttons));
+        
+        Get<Button>((int)Buttons.AppointmentButton).onClick.AddListener(OnAppointmentButtonClicked);
+    }
+    public void SetInfo(RoleType role)
     {
         _myRole = role;
-        _onSlotClickedCallback = onClickCallback;
 
-        _roleNameText.text = GetRoleNameKorean(role);
-        RefreshAssignedCharacter();
+        Get<TextMeshProUGUI>((int)Texts.RoleNameText).text = GetRoleNameKorean(_myRole);
         
-        _slotButton.onClick.RemoveAllListeners();
-        _slotButton.onClick.AddListener((() => _onSlotClickedCallback?.Invoke(_myRole)));
+        //Character appointedCharacter = RosterManager.Instance.
+        //string appointedName = 
+        Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text = "공석";
     }
 
-    public void RefreshAssignedCharacter()
+    public void OnAppointmentButtonClicked()
     {
-        if (RosterManager.Instance == null) return;
+        if (UIManager.Instance == null) return;
+        CharacterListPopupUI popup = UIManager.Instance.ShowPopupUI<CharacterListPopupUI>();
         
-        Character assignedCharacter = RosterManager.Instance.AllCharacters.Find(c=>c.CurrentRoleType == _myRole);
-        if (assignedCharacter != null)
-        {
-            _assignedNameText.text = $"<color=#00FF00>{assignedCharacter.BaseData.CharacterName}</color>";
-        }
-        else
-        {
-            _assignedNameText.text =$"<color=#4c4c4c>공석</color>";
-        }
+        //popup.SetTargetRole(_myRole);
     }
 
     private string GetRoleNameKorean(RoleType role)

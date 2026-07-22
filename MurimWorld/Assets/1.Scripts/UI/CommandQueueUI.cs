@@ -1,22 +1,26 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
-public class CommandQueueUI : MonoBehaviour
+public class CommandQueueUI : UIScene
 {
-    [SerializeField] private Transform _contentContainer; 
+    enum GameObjects {ContentContainer}
+
+    [Header("프리팹 연결")]
     [SerializeField] private GameObject _commandItemPrefab;
 
-    private void OnEnable()
+    public override void Init()
     {
+        base.Init();
+        Bind<GameObject>(typeof(GameObjects));
+
         if (TurnManager.Instance != null)
         {
             TurnManager.Instance.OnQueueChanged += RefreshQueueUI;
         }
-
         RefreshQueueUI();
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         if (TurnManager.Instance != null)
         {
@@ -28,18 +32,21 @@ public class CommandQueueUI : MonoBehaviour
     {
         if (TurnManager.Instance == null) return;
 
-        foreach (Transform child in _contentContainer)
+        Transform container = Get<GameObject>((int)GameObjects.ContentContainer).transform;
+        foreach (Transform child in container)
         {
             Destroy(child.gameObject);
         }
         
-        foreach (ICommand cmd in TurnManager.Instance.PendingCommands)
+        IReadOnlyList<ICommand> commands = TurnManager.Instance.PendingCommands;
+        foreach (ICommand cmd in commands)
         {
-            GameObject go = Instantiate(_commandItemPrefab, _contentContainer);
+            GameObject go = Instantiate(_commandItemPrefab, container);
             CommandItemUI itemUI = go.GetComponent<CommandItemUI>();
             if (itemUI != null)
             {
-                itemUI.Initialize(cmd);
+                itemUI.Init();
+                itemUI.SetInfo(cmd);
             }
         }
     }

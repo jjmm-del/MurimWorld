@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5186794963062800295}
   - component: {fileID: 1770974654265516531}
   m_Layer: 5
-  m_Name: Button
+  m_Name: CancelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 4682275015269370626}
   - component: {fileID: 5192931878768246614}
   m_Layer: 5
-  m_Name: Image
+  m_Name: CommandItemPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -211,8 +211,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d7f478a293adf2429097788b9c0b08c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CommandItemUI
-  _nameText: {fileID: 478576679633701084}
-  _cancelButton: {fileID: 1770974654265516531}
 --- !u!1 &4307236430020225518
 GameObject:
   m_ObjectHideFlags: 0
@@ -362,7 +360,7 @@ GameObject:
   - component: {fileID: 7426407554015896594}
   - component: {fileID: 478576679633701084}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: NameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
