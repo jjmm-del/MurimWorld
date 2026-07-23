@@ -12,7 +12,9 @@ public class RosterManager : Singleton<RosterManager>
     private readonly string[] _givenNames = { "검", "호", "룡", "연", "백", "무", "현", "천", "산" };
     private readonly string[] _titles = { "비연", "혈도", "철벽", "풍신", "광마", "신검", "독수" };
     
-    public List<Character> AllCharacters => _allCharacters;
+    public IReadOnlyList<Character> AllCharacters => _allCharacters;
+    private Dictionary<RoleType, Character> _appointedRoles = new Dictionary<RoleType, Character>();
+    
     protected override void Awake()
     {
         base.Awake();
@@ -30,17 +32,62 @@ public class RosterManager : Singleton<RosterManager>
         Debug.Log($"총 {_allCharacters.Count}명의 캐릭터 데이터를 성공적으로 불러왔습니다.");
     }
 
-    public void AssignRole(Character targetCharacter, RoleType newRole)
+    public void AddCharacter(Character character)
     {
-        foreach (Character character in _allCharacters)
+        if(!_allCharacters.Contains(character))
+            _allCharacters.Add(character);
+    }
+    public void AppointRole(RoleType role, Character character)
+    {
+        if (role == RoleType.None || character == null) return;
+
+        RoleType currentRole = GetRoleByCharacter(character);
+        if (currentRole != RoleType.None)
         {
-            if (character.CurrentRoleType == newRole)
-            {
-                character.CurrentRoleType = RoleType.None;
-            }
+            Debug.Log($"[RosterManager]{character.BaseData.CharacterName}이(가) 기존 {currentRole}직책에서 해임");
+            _appointedRoles.Remove(currentRole);
         }
-        targetCharacter.CurrentRoleType = newRole;
-        Debug.Log($"{targetCharacter.BaseData.CharacterName}이(가) {newRole}로 임명되었습니다.");
+
+        if (_appointedRoles.ContainsKey(role))
+        {
+            Character previousCharacter = _appointedRoles[role];
+            Debug.Log($"[RosterManager]{previousCharacter.BaseData.CharacterName}이(가){role}자리에서 물러남");
+        }
+
+        _appointedRoles[role] = character;
+        Debug.Log($"[RosterManager]{character.BaseData.CharacterName}이(가)새로 {role}에 임명");
+        character.CurrentRoleType = role;
+    }
+
+    public Character GetCharacterByRole(RoleType role)
+    {
+        if (_appointedRoles.TryGetValue(role, out Character appointedCharacter))
+        {
+            return appointedCharacter;
+        }
+
+        return null;
+    }
+
+    public RoleType GetRoleByCharacter(Character character)
+    {
+        foreach (var kvp in _appointedRoles)
+        {
+            if(kvp.Value == character)
+                return kvp.Key;
+        }
+        return RoleType.None;
+    }
+
+    public void UnappointRole(RoleType role)
+    {
+        if (_appointedRoles.ContainsKey(role))
+        {
+            Character firedCharacter = _appointedRoles[role];
+            _appointedRoles.Remove(role);
+            Debug.Log($"[RosterManager]{firedCharacter}이(가) {role}직책에서 해임되어 공석이 됨");
+            firedCharacter.CurrentRoleType = RoleType.None;
+        }
     }
     
     

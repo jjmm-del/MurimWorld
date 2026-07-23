@@ -1,44 +1,63 @@
 using UnityEngine;
-using System;
-using System.Linq.Expressions;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
-public class RoleSlotItemUI : MonoBehaviour
+public class RoleSlotItemUI : UI_SubItem
 {
-    [Header("UI Components")]
-    [SerializeField] private TextMeshProUGUI _roleNameText;
-    [SerializeField] private TextMeshProUGUI _assignedNameText;
-    [SerializeField] private Button _slotButton;
-
+    enum Texts {RoleNameText, AssignedCharacterNameText}
+    enum Buttons{AppointmentButton};
+    
     private RoleType _myRole;
-    private Action<RoleType> _onSlotClickedCallback;
 
-    public void Initialize(RoleType role, Action<RoleType> onClickCallback)
+    public override void Init()
+    {
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        Bind<Button>(typeof(Buttons));
+        
+        Get<Button>((int)Buttons.AppointmentButton).onClick.AddListener(OnAppointmentButtonClicked);
+    }
+    public void SetInfo(RoleType role)
     {
         _myRole = role;
-        _onSlotClickedCallback = onClickCallback;
-
-        _roleNameText.text = GetRoleNameKorean(role);
-        RefreshAssignedCharacter();
+        Get<TextMeshProUGUI>((int)Texts.RoleNameText).text = GetRoleNameKorean(_myRole);
+        if (RosterManager.Instance != null)
+        {
+            Character appointedCharacter = RosterManager.Instance.GetCharacterByRole(_myRole);
+            if (appointedCharacter != null)
+            {
+                Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text =
+                    appointedCharacter.BaseData.CharacterName;
+            }
+            else
+            {
+                Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text = "공석";
+            }
+        }
         
-        _slotButton.onClick.RemoveAllListeners();
-        _slotButton.onClick.AddListener((() => _onSlotClickedCallback?.Invoke(_myRole)));
+        
     }
 
-    public void RefreshAssignedCharacter()
+    public void OnAppointmentButtonClicked()
     {
-        if (RosterManager.Instance == null) return;
-        
-        Character assignedCharacter = RosterManager.Instance.AllCharacters.Find(c=>c.CurrentRoleType == _myRole);
-        if (assignedCharacter != null)
+        if (UIManager.Instance == null) return;
+        CharacterListPopupUI popup = UIManager.Instance.ShowPopupUI<CharacterListPopupUI>();
+        string koreanName = GetRoleNameKorean(_myRole);
+        popup.SetInfo($"[{koreanName}] 임명할 인재 선택", (selectedCharacter) =>
         {
-            _assignedNameText.text = $"<color=#00FF00>{assignedCharacter.BaseData.CharacterName}</color>";
-        }
-        else
-        {
-            _assignedNameText.text =$"<color=#4c4c4c>공석</color>";
-        }
+            Debug.Log($"임명성공");
+            
+            //실제 임명 로직
+            if (RosterManager.Instance != null)
+            {
+                RosterManager.Instance.AppointRole(_myRole, selectedCharacter);
+            }
+            AppointmentSubPanelUI parentPanel = GetComponentInParent<AppointmentSubPanelUI>();
+            if (parentPanel != null)
+            {
+                parentPanel.RefreshRoleSlots();
+            }
+            //SetInfo(_myRole);
+        });
     }
 
     private string GetRoleNameKorean(RoleType role)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 public class BuildingController : MonoBehaviour
 {
     [Header("건물 설정")]
@@ -68,7 +69,7 @@ public class BuildingController : MonoBehaviour
         {
             TooltipManager.Instance.HideTooltip();
         }
-        EventManager.OnBuildingClicked?.Invoke(_myBuildingType);
+        EventManager.TriggerBuildingClicked(buildingType: _myBuildingType);
         meshRenderer.material.color = originColor;
     }
 }

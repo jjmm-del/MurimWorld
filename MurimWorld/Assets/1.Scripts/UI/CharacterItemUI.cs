@@ -3,57 +3,44 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterItemUI : MonoBehaviour
+public class CharacterItemUI : UI_SubItem
 {
-    [Header("UI Components")]
-    [SerializeField] private Image _portraitImage;
-    [SerializeField] private TextMeshProUGUI _nameText;
-    [SerializeField] private TextMeshProUGUI _statsText;
-    [SerializeField] private TextMeshProUGUI _roleText;
-    [SerializeField] private Button _selectButton;
+    enum Texts {CharacterNameText,CharacterStatText, CharacterRoleText}
+    enum Buttons {SelectButton}
+    
+    // [Header("UI Components")]
+    // [SerializeField] private Image _portraitImage;
+    // [SerializeField] private TextMeshProUGUI _nameText;
+    // [SerializeField] private TextMeshProUGUI _statsText;
+    // [SerializeField] private TextMeshProUGUI _roleText;
+    // [SerializeField] private Button _selectButton;
 
-    private Character _targetCharacter;
-
-    private Action<Character> _onClickedCallback;
-
-    private void Awake()
+    private Character _myCharacter;
+    private Action<Character> _onSelectedCallback;
+    
+    public override void Init()
     {
-        _roleText.text = "";
-    }
-    private void OnEnable()
-    {
-        _selectButton.onClick.AddListener(OnItemClicked);
-    }
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        Bind<Button>(typeof(Buttons));
 
-    private void OnDisable()
-    {
-        _selectButton.onClick.RemoveListener(OnItemClicked);
+        Get<Button>((int)Buttons.SelectButton).onClick.AddListener(OnSelectClicked);
+
     }
 
-    public void Initialize(Character character, Action<Character> onClickCallback)
+    public void SetInfo(Character character, Action<Character> onSelected)
     {
-        _targetCharacter = character;
-        _onClickedCallback = onClickCallback;
-        
-        //데이터 반영
-        _nameText.text = character.BaseData.CharacterName;
-        _statsText.text = $"무력:{character.BaseData.Strength}";
+        _myCharacter = character;
+        _onSelectedCallback = onSelected;
 
-        if (character.CurrentRoleType != RoleType.None)
-        {
-            _roleText.text = $"<color=yellow>[{GetRoleNameKorean(character.CurrentRoleType)}]</color>";
-        }
-
-        if (character.BaseData.Portrait != null && _portraitImage != null)
-        {
-            _portraitImage.sprite = character.BaseData.Portrait;
-        }
+        Get<TextMeshProUGUI>((int)Texts.CharacterNameText).text = character.BaseData.CharacterName;
+        // Get<TextMeshProUGUI>((int)Texts.CharacterStatText).text = character.CharacterData;
+        // Get<TextMeshProUGUI>((int)Texts.CharacterNameText).text = character.CharacterName;
     }
 
-    private void OnItemClicked()
+    private void OnSelectClicked()
     {
         //알림
-        _onClickedCallback?.Invoke(_targetCharacter);
+        _onSelectedCallback?.Invoke(_myCharacter);
     }
 
     private string GetRoleNameKorean(RoleType role)
