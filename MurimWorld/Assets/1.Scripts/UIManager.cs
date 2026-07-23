@@ -107,17 +107,28 @@ public class UIManager : Singleton<UIManager>
     #endregion
     private void HandleBuildingClicked(BuildingType clickedBuildingType)
     {
-        if (UIManager.Instance == null) return;
+        if (Instance == null) return;
         CloseAllPopupUI();
 
         switch (clickedBuildingType)
         {
             case BuildingType.MainCastle:
-                UIManager.Instance.ShowPopupUI<MainCastlePanelUI>();
+                Instance.ShowPopupUI<MainCastlePanelUI>();
                 break;
-            // case BuildingType.Forge:
-            //     UIManager.Instance.ShowPopupUI<ForgePanelUI>();
-            //     break;
+             case BuildingType.Forge:
+                 Instance.ShowPopupUI<ForgePanelUI>();
+                 break;
+             case BuildingType.TrainingGround:
+                 Instance.ShowPopupUI<TrainingGroundPanelUI>();
+                 break;
+            // case BuildingType.Pharmacy:
+            //     Instance.ShowPopupUI<PharmacyPanelUI>();
+            // case BuildingType.TrainingGround:
+            //     Instance.ShowPopupUI<TrainingGroundPanelUI>();
+            // case BuildingType.TrainingGround:
+            //     Instance.ShowPopupUI<TrainingGroundPanelUI>();
+            // case BuildingType.TrainingGround:
+            //     Instance.ShowPopupUI<TrainingGroundPanelUI>();
             default:
                 Debug.LogWarning("연결된 UI가 없는 건물입니다." + clickedBuildingType);
                 break;

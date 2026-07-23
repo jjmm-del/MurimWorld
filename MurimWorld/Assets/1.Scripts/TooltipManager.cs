@@ -1,45 +1,51 @@
 using UnityEngine;
-using TMPro;
-using UnityEngine.InputSystem;
+
 public class TooltipManager : Singleton<TooltipManager>
 {
-    [Header("Tooltip UI Components")]
-    [SerializeField] private GameObject _tooltipPanel;
-    [SerializeField] private TextMeshProUGUI _buildingNameText;
-
-    [Header("Settings")]
-    [SerializeField] private Vector3 _offset = new Vector3(15f, -15f, 0f);
+    private TooltipUI _tooltipUI;
+    // [Header("Tooltip UI Components")]
+    // [SerializeField] private GameObject _tooltipPanel;
+    // [SerializeField] private TextMeshProUGUI _buildingNameText;
+    //
+    // [Header("Settings")]
+    // [SerializeField] private Vector3 _offset = new Vector3(15f, -15f, 0f);
 
     protected override void Awake()
     {
         base.Awake();
-        HideTooltip();
+        InitTooltip();
     }
 
-    private void Update()
+    public void InitTooltip()
     {
-        if (_tooltipPanel != null && _tooltipPanel.activeSelf)
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/TooltipUI");
+        if (prefab == null) return;
+
+        GameObject go = Instantiate(prefab);
+        DontDestroyOnLoad(go); // 씬이 바뀌어도 툴팁은 유지
+
+        Canvas canvas = go.GetComponent<Canvas>();
+        if(canvas == null) canvas = go.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = 9999;
+        
+        _tooltipUI = go.GetComponent<TooltipUI>();
+        _tooltipUI.Init();
+    }
+
+    public void ShowTooltip(string content)
+    {
+        if (Instance != null && Instance._tooltipUI != null)
         {
-            if (Mouse.current != null)
-            {
-                Vector2 mousePos = Mouse.current.position.ReadValue();
-                _tooltipPanel.transform.position = new Vector3(mousePos.x, mousePos.y,0)+_offset;
-            }
+            Instance._tooltipUI.Show(content);
         }
     }
-
-    public void ShowTooltip(string buildingName)
-    {
-        if (_tooltipPanel == null || _buildingNameText == null) return;
-        _buildingNameText.text = buildingName;
-        _tooltipPanel.SetActive(true);
-    }
-
     public void HideTooltip()
     {
-        if (_tooltipPanel != null)
+        if (Instance != null && Instance._tooltipUI != null)
         {
-            _tooltipPanel.SetActive(false);
+            Instance._tooltipUI.Hide();
         }
     }
         

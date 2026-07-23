@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 public class BuildingController : MonoBehaviour
 {
     [Header("건물 설정")]

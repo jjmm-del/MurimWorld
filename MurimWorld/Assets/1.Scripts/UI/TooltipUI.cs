@@ -1,27 +1,40 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.InputSystem;
+
 public class TooltipUI : UIBase
 {
     enum Texts {TooltipText}
     enum GameObjects {TooltipPanel}
 
-    private RectTransform _rectTransform;
+    private Vector2 _offset = new Vector2(75f, 35f);
+   // private RectTransform _rectTransform;
 
     public override void Init()
     {
         Bind<TextMeshProUGUI>(typeof(Texts));
         Bind<GameObject>(typeof(GameObjects));
         
-        _rectTransform = GetComponent<RectTransform>();
+        //_rectTransform = GetComponent<RectTransform>();
         Hide();
     }
 
-    public void Show(string contents, Vector2 position)
+    private void Update()
+    {
+        if (Mouse.current != null)
+        {
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            Get<GameObject>((int)GameObjects.TooltipPanel).transform.position = mousePos+_offset;
+            //_rectTransform.position = new Vector3(mousePos.x, mousePos.y, 0);
+        }
+    }
+
+    public void Show(string contents)
     {
       Get<GameObject>((int)GameObjects.TooltipPanel).SetActive(true);
-      Get<TextMeshProUGUI>((int)GameObjects.TooltipPanel).text = contents;
+      Get<TextMeshProUGUI>((int)Texts.TooltipText).text = contents;
       
-      transform.position = position;
+      
     }
 
     public void Hide()
