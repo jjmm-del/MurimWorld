@@ -6,119 +6,75 @@ using UnityEngine.UI;
 
 public class CharacterListPopupUI : UIPopup
 {
-    [Header("Scroll View Infrastructure")]
-    [SerializeField] private Transform _contentContainer;
-    [SerializeField] private GameObject _itemPrefab;
+    enum GameObjects {CharacterGridContainer}
+    enum Buttons {CloseButton}
+    enum Texts {TitleText}
+
+    [SerializeField] private GameObject _characterItemPrefab;
+    private Action<Character> _onCharacterSelected;
     
-    [Header("Confirmation Popup UI")]
-    [SerializeField] private GameObject _confirmationPopup;
-    [SerializeField] private TextMeshProUGUI _popupMessageText;
-    [SerializeField] private Button _confirmButton;
-    [SerializeField] private Button _cancelButton;
+    // [Header("Scroll View Infrastructure")]
+    // [SerializeField] private Transform _contentContainer;
+    // [SerializeField] private GameObject _itemPrefab;
+    //
+    // [Header("Confirmation Popup UI")]
+    // [SerializeField] private GameObject _confirmationPopup;
+    // [SerializeField] private TextMeshProUGUI _popupMessageText;
+    // [SerializeField] private Button _confirmButton;
+    // [SerializeField] private Button _cancelButton;
+    //
+    // private RoleType _currentSelectingRoleSlot = RoleType.None;
+    // private Character _pendingCharacter = null;
+    //
+    // private Action _onAssignmentCompleteCallback;
 
-    private RoleType _currentSelectingRoleSlot = RoleType.None;
-    private Character _pendingCharacter = null;
-
-    private Action _onAssignmentCompleteCallback;
-    private void OnEnable()
+    public override void Init()
     {
-        _confirmButton.onClick.AddListener(OnConfirmAssignment);
-        _cancelButton.onClick.AddListener(OnCancelAssignment);
+        base.Init();
+        Bind<GameObject>(typeof(GameObjects));
+        Bind<Button>(typeof(Buttons));
+        Bind<TextMeshProUGUI>(typeof(Texts));
+        
+        Get<Button>((int)Buttons.CloseButton).onClick.AddListener(ClosePopupUI);
     }
 
-    private void OnDisable()
+    public void SetInfo(string title, Action<Character> onHeroSelected)
     {
-        _confirmButton.onClick.RemoveListener(OnConfirmAssignment);
-        _cancelButton.onClick.RemoveListener(OnCancelAssignment);
-    }
-
-    public void OpenPopup(RoleType targetRoleSlot, Action onCompleteCallback)
-    {
-        _currentSelectingRoleSlot = targetRoleSlot;
-        _onAssignmentCompleteCallback = onCompleteCallback;
+        Get<TextMeshProUGUI>((int)Texts.TitleText).text = title;
+        _onCharacterSelected = onHeroSelected;
         
-        _confirmationPopup.SetActive(false);
-        _pendingCharacter = null;
-        
-        gameObject.SetActive(true);
         RefreshCharacterList();
     }
+
+    
 
     private void RefreshCharacterList()
     {
-        foreach (Transform child in _contentContainer)
-        {
-            Destroy(child.gameObject);
-        }
+        Transform container = Get<GameObject>((int)GameObjects.CharacterGridContainer).transform;
+        foreach(Transform child in container) Destroy(child.gameObject);
 
-        if (RosterManager.Instance == null)
-        {
-            return;
-        }
-
-        List<Character> roster = RosterManager.Instance.AllCharacters;
+        var roster = RosterManager.Instance.AllCharacters;
 
         foreach (Character character in roster)
         {
-            GameObject go = Instantiate(_itemPrefab, _contentContainer);
+            GameObject go = Instantiate(_characterItemPrefab, container);
             CharacterItemUI itemUI = go.GetComponent<CharacterItemUI>();
-
-            if (itemUI != null)
-            {
-                itemUI.Initialize(character, OnCharacterSelected);
-            }
-        }
-    }
-
-    private void OnCharacterSelected(Character selectedCharacter)
-    {
-        if (selectedCharacter.CurrentRoleType == _currentSelectingRoleSlot)
-        {
-            Debug.Log($"{selectedCharacter.BaseData.CharacterName}은(는) 이미 해당 직책입니다.");
-            return;
-        }
-
-        if (selectedCharacter.CurrentRoleType != RoleType.None)
-        {
-            _pendingCharacter = selectedCharacter;
-
-            _popupMessageText.text =
-                $"<color=yellow>{selectedCharacter.BaseData.CharacterName}</color>님은 이미 다른 중책을 맡고 계십니다. \n직책을 변경하시겠습니까?";
-            _confirmationPopup.SetActive(true);
-        }
-        else
-        {
-            ExecuteAssignment(selectedCharacter);
-        }
-    }
-
-    private void OnConfirmAssignment()
-    {
-        if (_pendingCharacter != null)
-        {
-            ExecuteAssignment(_pendingCharacter);
+            itemUI.Init();
             
+            itemUI.SetInfo(character, OnCharacterClicked);
         }
     }
 
-    private void OnCancelAssignment()
+    private void OnCharacterClicked(Character selectedCharacter)
     {
-        _pendingCharacter = null;
-        _confirmationPopup.SetActive(false);
-    }
-
-    private void ExecuteAssignment(Character selectedCharacter)
-    {
-        if (RosterManager.Instance != null)
+        ConfirmationPopupUI confirmUI = UIManager.Instance.ShowPopupUI<ConfirmationPopupUI>();
+        
+        confirmUI.SetInfo($"[{selectedCharacter.BaseData.CharacterName}]을 정말 선택하시겠습니까?", () =>
         {
-            RosterManager.Instance.AssignRole(selectedCharacter, _currentSelectingRoleSlot);
-        }
-        _pendingCharacter = null;
-        _confirmationPopup.SetActive(false);
-        this.gameObject.SetActive(false);
-        RefreshCharacterList();
-        _onAssignmentCompleteCallback?.Invoke();
+            _onCharacterSelected?.Invoke(selectedCharacter);
+            
+            ClosePopupUI();
+        });
     }
-    
 }
 

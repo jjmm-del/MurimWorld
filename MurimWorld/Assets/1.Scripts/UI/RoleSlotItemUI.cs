@@ -19,20 +19,45 @@ public class RoleSlotItemUI : UI_SubItem
     public void SetInfo(RoleType role)
     {
         _myRole = role;
-
         Get<TextMeshProUGUI>((int)Texts.RoleNameText).text = GetRoleNameKorean(_myRole);
+        if (RosterManager.Instance != null)
+        {
+            Character appointedCharacter = RosterManager.Instance.GetCharacterByRole(_myRole);
+            if (appointedCharacter != null)
+            {
+                Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text =
+                    appointedCharacter.BaseData.CharacterName;
+            }
+            else
+            {
+                Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text = "공석";
+            }
+        }
         
-        //Character appointedCharacter = RosterManager.Instance.
-        //string appointedName = 
-        Get<TextMeshProUGUI>((int)Texts.AssignedCharacterNameText).text = "공석";
+        
     }
 
     public void OnAppointmentButtonClicked()
     {
         if (UIManager.Instance == null) return;
         CharacterListPopupUI popup = UIManager.Instance.ShowPopupUI<CharacterListPopupUI>();
-        
-        //popup.SetTargetRole(_myRole);
+        string koreanName = GetRoleNameKorean(_myRole);
+        popup.SetInfo($"[{koreanName}] 임명할 인재 선택", (selectedCharacter) =>
+        {
+            Debug.Log($"임명성공");
+            
+            //실제 임명 로직
+            if (RosterManager.Instance != null)
+            {
+                RosterManager.Instance.AppointRole(_myRole, selectedCharacter);
+            }
+            AppointmentSubPanelUI parentPanel = GetComponentInParent<AppointmentSubPanelUI>();
+            if (parentPanel != null)
+            {
+                parentPanel.RefreshRoleSlots();
+            }
+            //SetInfo(_myRole);
+        });
     }
 
     private string GetRoleNameKorean(RoleType role)

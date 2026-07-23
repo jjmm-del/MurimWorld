@@ -1,38 +1,56 @@
+using System;
 using UnityEngine;
 
 public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
-    private static T instance;
+    private static T _instance;
 
+    private static bool _applicationIsQuitting = false;
     public static T Instance
     {
         get
         {
-            if (instance == null)
+            if (_applicationIsQuitting)
             {
-                instance = FindAnyObjectByType<T>();
+                Debug.LogWarning($"[Singleton] 어플리케이션 종료 중 {typeof(T)}를 요청하여 null을 반환.");
+                return null;
+            }
+            if (_instance == null)
+            {
+                _instance = FindAnyObjectByType<T>();
 
-                if (instance == null)
+                if (_instance == null)
                 {
                     GameObject go = new GameObject(typeof(T).Name + " (Singleton)");
-                    instance = go.AddComponent<T>();
+                    _instance = go.AddComponent<T>();
+                    DontDestroyOnLoad(go);
                 }
             }
-            return instance;
+            return _instance;
         }
     }
 
     protected virtual void Awake()
     {
-        if (instance == null)
+        if (_instance == null)
         {
-            instance = this as T;
+            _instance = this as T;
             DontDestroyOnLoad(gameObject);
         }
-        else if (instance != this)
+        else if (_instance != this)
         {
             Debug.LogWarning($"[{typeof(T).Name}] 중복된 싱글톤 매니저가 감지되어{gameObject.name}을 파괴합니다.");
             Destroy(gameObject);
         }
+    }
+
+    protected void OnApplicationQuit()
+    {
+        _applicationIsQuitting = true;
+    }
+
+    protected void OnDestroy()
+    {
+        _applicationIsQuitting = true;
     }
 }
